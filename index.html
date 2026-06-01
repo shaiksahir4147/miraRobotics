@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Health Prediction System</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI,sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#000,#2b0000,#4a0000);
+min-height:100vh;
+padding:30px;
+color:white;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+}
+
+.header{
+text-align:center;
+margin-bottom:30px;
+}
+
+.header h1{
+font-size:3rem;
+color:#ff4d4d;
+}
+
+.header p{
+color:#ddd;
+}
+
+.card{
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(15px);
+padding:30px;
+border-radius:20px;
+border:1px solid rgba(255,0,0,.2);
+box-shadow:0 10px 30px rgba(255,0,0,.25);
+}
+
+.form-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+}
+
+.input-group{
+display:flex;
+flex-direction:column;
+}
+
+label{
+margin-bottom:6px;
+font-weight:600;
+}
+
+input{
+padding:12px;
+border:none;
+border-radius:10px;
+background:#111;
+color:white;
+border:1px solid #444;
+}
+
+input:focus{
+outline:none;
+border-color:#ff4d4d;
+box-shadow:0 0 10px rgba(255,77,77,.5);
+}
+
+.btn{
+margin-top:20px;
+width:100%;
+padding:15px;
+border:none;
+border-radius:12px;
+background:linear-gradient(90deg,#8b0000,#ff1a1a);
+color:white;
+font-size:17px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.btn:hover{
+transform:translateY(-2px);
+}
+
+.result{
+display:none;
+margin-top:25px;
+padding:20px;
+border-radius:12px;
+background:rgba(255,0,0,.1);
+border-left:5px solid #ff4d4d;
+}
+
+.result h3{
+color:#ff4d4d;
+margin-bottom:10px;
+}
+
+table{
+width:100%;
+margin-top:30px;
+border-collapse:collapse;
+background:#111;
+border-radius:15px;
+overflow:hidden;
+}
+
+th{
+background:#8b0000;
+padding:15px;
+}
+
+td{
+padding:12px;
+border-bottom:1px solid #222;
+text-align:center;
+}
+
+tr:hover{
+background:#1b1b1b;
+}
+
+@media(max-width:768px){
+.form-grid{
+grid-template-columns:1fr;
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<h1>🏥 AI Health Prediction</h1>
+<p>Blood Test Analysis & Disease Risk Detection</p>
+</div>
+
+<div class="card">
+
+<form id="patientForm">
+
+<div class="form-grid">
+
+<div class="input-group">
+<label>Full Name</label>
+<input type="text" id="name" required>
+</div>
+
+<div class="input-group">
+<label>Email</label>
+<input type="email" id="email" required>
+</div>
+
+<div class="input-group">
+<label>Date of Birth</label>
+<input type="date" id="dob" required>
+</div>
+
+<div class="input-group">
+<label>Glucose</label>
+<input type="number" id="glucose" required>
+</div>
+
+<div class="input-group">
+<label>Haemoglobin</label>
+<input type="number" id="haemoglobin" required>
+</div>
+
+<div class="input-group">
+<label>Cholesterol</label>
+<input type="number" id="cholesterol" required>
+</div>
+
+</div>
+
+<button class="btn" type="submit">
+🔍 Predict Health Risk
+</button>
+
+</form>
+
+<div class="result" id="resultBox">
+<h3>AI Prediction Result</h3>
+<p id="remarks"></p>
+</div>
+
+</div>
+
+<table>
+
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Glucose</th>
+<th>Haemoglobin</th>
+<th>Cholesterol</th>
+<th>Remarks</th>
+</tr>
+</thead>
+
+<tbody id="tableBody">
+
+</tbody>
+
+</table>
+
+</div>
+
+<script>
+
+document
+  .getElementById("patientForm")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const patient = {
+      name: document.getElementById("name").value,
+      email: document.getElementById("email").value,
+      dob: document.getElementById("dob").value,
+
+      // Add gender field in HTML or use default value
+      gender: "Male",
+
+      blood_sugar: parseFloat(
+        document.getElementById("glucose").value
+      ),
+
+      hemoglobin: parseFloat(
+        document.getElementById("haemoglobin").value
+      ),
+
+      cholesterol: parseFloat(
+        document.getElementById("cholesterol").value
+      ),
+
+      remarks: ""
+    };
+
+    try {
+      const response = await fetch("/patients", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(patient)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(JSON.stringify(data));
+        return;
+      }
+
+      document.getElementById("resultBox").style.display = "block";
+
+      document.getElementById("remarks").innerText =
+        data.remarks;
+
+      const row = `
+        <tr>
+          <td>${patient.name}</td>
+          <td>${patient.email}</td>
+          <td>${patient.blood_sugar}</td>
+          <td>${patient.hemoglobin}</td>
+          <td>${patient.cholesterol}</td>
+          <td>${data.remarks}</td>
+        </tr>
+      `;
+
+      document
+        .getElementById("tableBody")
+        .insertAdjacentHTML("beforeend", row);
+
+      document.getElementById("patientForm").reset();
+
+    } catch (error) {
+      console.error(error);
+      alert("Server Error");
+    }
+  });
+</script>
+
+</body>
+</html>
